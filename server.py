@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-import os
+import re
 
 import paho.mqtt.client as mqtt
 from blinkstick import blinkstick
 
 stick = blinkstick.find_first()
-
+SPACES = re.compile(r"\s+")
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -28,16 +28,24 @@ def on_message(client, userdata, msg):
 
 def on_blinkstick(slugs, body):
     print("slugs", slugs, body)
-    assert len(slugs) > 2, "too few elements : %s" % slugs
-    if len(slugs) == 3:
-        index = int(slugs[2])
-        if body.startswith(b"#"):
-            hex = body.decode()
-            print(index, hex)
-            stick.set_color(index=index, hex=hex)
-        else:
-            print(index, body)
-            stick.set_color(index=index, name=body.decode())
+    assert len(slugs) >= 3, "too few elements : %s" % slugs
+    if slugs[2] == "off":
+        for i in range(8):
+            stick.set_color(index=i+1, name='black')
+        return
+    if slugs[2] == "-":
+        index = range(1, 9)
+    else:
+        index = [int(i) for i in slugs[2].split(",")]
+    if slugs[3] == "color":
+        colors = SPACES.split(body.decode()) * 8
+        print("colors", colors)
+        for i, idx in enumerate(index):
+            color = colors[i]
+            if color.startswith("#"):
+                stick.set_color(index=idx, hex=color)
+            else:
+                stick.set_color(index=idx, name=color)
 
 
 client = mqtt.Client()
