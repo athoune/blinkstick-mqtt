@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "blinkstick-mqtt"
+version = "0.1.0"
+description = ""
+authors = ["Mathieu Lecarme <mathieu@garambrogne.net>"]
+license = "MPL"
+readme = "README.md"
+packages = [{include = "blinkstick_mqtt"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+blinkstick = "^1.2.0"
+paho-mqtt = "^1.6.1"
+pyusb = "^1.2.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.278"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
