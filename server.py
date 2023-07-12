@@ -37,15 +37,20 @@ def on_blinkstick(slugs, body):
         index = range(1, 9)
     else:
         index = [int(i) for i in slugs[2].split(",")]
-    if slugs[3] == "color":
-        colors = SPACES.split(body.decode()) * 8
+    colors = SPACES.split(body.decode()) * 8
+    if slugs[3] in ("color", "morph"):
+        if slugs[3] == "color":
+            m = stick.set_color
+        elif slugs[3] == "morph":
+            m = stick.morph
         print("colors", colors)
         for i, idx in enumerate(index):
             color = colors[i]
             if color.startswith("#"):
-                stick.set_color(index=idx, hex=color)
+                m(index=idx, hex=color)
             else:
-                stick.set_color(index=idx, name=color)
+                m(index=idx, name=color)
+
 
 
 client = mqtt.Client()
