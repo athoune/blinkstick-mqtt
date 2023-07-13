@@ -8,6 +8,7 @@ from blinkstick import blinkstick
 stick = blinkstick.find_first()
 SPACES = re.compile(r"\s+")
 
+
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
@@ -31,7 +32,7 @@ def on_blinkstick(slugs, body):
     assert len(slugs) >= 3, "too few elements : %s" % slugs
     if slugs[2] == "off":
         for i in range(8):
-            stick.set_color(index=i+1, name='black')
+            stick.set_color(index=i + 1, name="black")
         return
     if slugs[2] == "-":
         index = range(1, 9)
@@ -50,7 +51,6 @@ def on_blinkstick(slugs, body):
                 m(index=idx, hex=color)
             else:
                 m(index=idx, name=color)
-
 
 
 client = mqtt.Client()
