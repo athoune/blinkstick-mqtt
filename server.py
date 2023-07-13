@@ -10,13 +10,16 @@ SPACES = re.compile(r"\s+")
 
 
 # The callback for when the client receives a CONNACK response from the server.
-def on_connect(client, userdata, flags, rc):
-    print("Connected with result code " + str(rc))
+def listen(name=""):
+    print(f"Listening {name}")
+    name = f"/{name}/#"
 
-    # Subscribing in on_connect() means that if we lose the connection and
-    # reconnect then subscriptions will be renewed.
-    # client.subscribe("$SYS/#")
-    client.subscribe("blinkstick/#")
+    def on_connect(client, userdata, flags, rc):
+        print("Connected with result code " + str(rc))
+        # client.subscribe("$SYS/#")
+        client.subscribe(f"blinkstick{name}")
+
+    return on_connect
 
 
 # The callback for when a PUBLISH message is received from the server.
@@ -28,8 +31,9 @@ def on_message(client, userdata, msg):
 
 
 def on_blinkstick(slugs, body):
+    "blinkstick handler"
     print("slugs", slugs, body)
-    assert len(slugs) >= 3, "too few elements : %s" % slugs
+    assert len(slugs) >= 3, f"too few elements : {slugs}"
     if slugs[2] == "off":
         for i in range(8):
             stick.set_color(index=i + 1, name="black")
@@ -41,26 +45,29 @@ def on_blinkstick(slugs, body):
     colors = SPACES.split(body.decode()) * 8
     if slugs[3] in ("color", "morph"):
         if slugs[3] == "color":
-            m = stick.set_color
+            action = stick.set_color
         elif slugs[3] == "morph":
-            m = stick.morph
+            action = stick.morph
         print("colors", colors)
         for i, idx in enumerate(index):
             color = colors[i]
             if color.startswith("#"):
-                m(index=idx, hex=color)
+                action(index=idx, hex=color)
             else:
-                m(index=idx, name=color)
+                action(index=idx, name=color)
 
 
 client = mqtt.Client()
-client.on_connect = on_connect
 client.on_message = on_message
 
-client.connect("localhost", 1883, 60)
+if __name__ == "__main__":
+    import os
 
-# Blocking call that processes network traffic, dispatches callbacks and
-# handles reconnecting.
-# Other loop*() functions are available that give a threaded interface and a
-# manual interface.
-client.loop_forever()
+    client.on_connect = listen(os.getenv("NAME") or "")
+    client.connect(os.getenv("LISTEN") or "localhost", 1883, 60)
+
+    # Blocking call that processes network traffic, dispatches callbacks and
+    # handles reconnecting.
+    # Other loop*() functions are available that give a threaded interface and a
+    # manual interface.
+    client.loop_forever()
